@@ -94,6 +94,104 @@ graph TD
 
 ---
 
+## 🛠️ Production Improvisations (How to Elevate the Architecture)
+
+If asked: *"How would you improve this system for a highly secure production deployment?"*, mention these five pillars:
+
+1. **Security Contexts & Least Privilege**:
+   - Set `runAsNonRoot: true`, `runAsUser: 10001`, and `readOnlyRootFilesystem: true` in Pod specifications.
+   - Strip unnecessary Linux capabilities (e.g. `capabilities: drop: ["ALL"]`).
+2. **Network Policies**:
+   - Limit ingress/egress to microservices (e.g. restrict `user-console` dashboard so it cannot communicate directly with the database, restricting access only to backend `core-api`).
+3. **Resource Requests & Limits**:
+   - Set CPU/Memory Requests and Limits for all pods to prevent CPU starvation and out-of-memory (OOM) kills.
+4. **Liveness & Readiness Probes**:
+   - Add HTTP or TCP health probes to prevent traffic routing to uninitialized or broken pods.
+5. **ConfigMaps/Secrets Separation**:
+   - Remove hardcoded environment variables. Inject sensitive database credentials or authentication keys using Kubernetes Secrets.
+
+---
+
+## 🚀 Complete Step-by-Step Setup Guide (From Scratch)
+
+Follow these exact steps to rebuild and run both applications from scratch on a clean machine:
+
+### Step 1: Start Minikube
+```bash
+minikube start --driver=docker
+```
+
+### Step 2: Build & Cache the Application Image
+```bash
+# Build the application image locally
+docker build -t fincoro-app:latest app/
+
+# Load the image into Minikube's local container registry
+minikube image load fincoro-app:latest
+```
+
+### Step 3: Install CRDs & Operators
+```bash
+# 1. Install standard Gateway API CRDs
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.0.0/standard-install.yaml
+
+# 2. Install cert-manager
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.13.1 \
+  --set installCRDs=true
+
+# 3. Install NGINX Gateway Fabric Controller & CRDs
+kubectl apply -f https://github.com/nginxinc/nginx-gateway-fabric/releases/download/v1.1.0/crds.yaml
+kubectl apply -f https://raw.githubusercontent.com/nginxinc/nginx-gateway-fabric/v1.1.0/deploy/manifests/nginx-gateway.yaml
+kubectl apply -f https://raw.githubusercontent.com/nginxinc/nginx-gateway-fabric/v1.1.0/deploy/manifests/service/loadbalancer.yaml
+
+# 4. Install Envoy Gateway
+helm install eg oci://docker.io/envoyproxy/gateway-helm \
+  --version v1.0.1 \
+  -n envoy-gateway-system \
+  --create-namespace
+```
+
+### Step 4: Install ArgoCD
+```bash
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Wait for ArgoCD components to be ready
+kubectl wait --namespace argocd --for=condition=ready pod --selector=app.kubernetes.io/name=argocd-server --timeout=90s
+```
+
+### Step 5: Apply ArgoCD Applications
+```bash
+# Apply shared infrastructure bootstrap (ClusterIssuer)
+kubectl apply -f argocd/infra-bootstrap.yaml
+
+# Wait a moment, then apply the microservices applications
+kubectl apply -f argocd/fincoro-app.yaml
+kubectl apply -f argocd/hospital-app.yaml
+```
+
+### Step 6: Activate Tunnel & Update Hosts
+1. Start the tunnel in a separate window:
+   ```bash
+   minikube tunnel
+   ```
+2. Find the external IPs:
+   ```bash
+   kubectl get svc -A | grep LoadBalancer
+   ```
+3. Update `/etc/hosts`:
+   ```bash
+   sudo nano /etc/hosts
+   ```
+   Add the IPs matching `nginx-gateway` and the `envoy-hospital-system-...` services.
+
+---
+
 ## 💬 Practice Q&A for Cloud Interviews (EKS & AKS)
 
 ### AWS EKS Interview Questions
@@ -119,7 +217,7 @@ graph TD
 > 1. AKS acts as an OIDC token issuer.
 > 2. A Kubernetes ServiceAccount token is projected into the pod.
 > 3. The pod exchanges this Kubernetes token with Azure AD (Microsoft Entra ID) for an Azure access token.
-> 4. Unlike legacy pod-managed identity which intercepted traffic on the node metadata IP, Workload Identity is standard-based, faster, and operates at the SDK level inside the application container, making it more secure and compatible with non-Linux node pools.
+> 4. Use of Workload Identity is standards-based, faster, and operates at the SDK level inside the application container, making it more secure and compatible with non-Linux node pools.
 
 #### Q: How would you secure and automate certificate updates for an AKS application using Azure Key Vault?
 > **Answer**: I would use the **Secrets Store CSI Driver** with the Azure Key Vault provider:
