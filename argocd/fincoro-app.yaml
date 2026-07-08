@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/chandrasekhar7/kubernetes-gatewayapi.git' # TODO: Replace with your repository URL
-    targetRevision: HEAD
+    targetRevision: minikube1
     path: fincoro-app
   destination:
     server: 'https://kubernetes.default.svc'
