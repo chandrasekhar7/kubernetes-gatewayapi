@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - 01-namespace.yaml
+  - 02-deployments.yaml
+  - 03-services.yaml
+  - ../cert-manager/02-ca-certificate.yaml
+  - ../cert-manager/03-ca-issuer.yaml
+  - ../cert-manager/04-app-certificate.yaml
+  - ../gateway-api/01-gateway.yaml
+  - ../gateway-api/02-routes.yaml

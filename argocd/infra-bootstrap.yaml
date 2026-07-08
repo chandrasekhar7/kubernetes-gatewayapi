@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra-bootstrap
+  namespace: argocd
+  labels:
+    app: infra-bootstrap
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/YOUR_USERNAME/kubernetes-gatewayapi.git' # TODO: Replace with your repository URL
+    targetRevision: HEAD
+    path: cert-manager
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

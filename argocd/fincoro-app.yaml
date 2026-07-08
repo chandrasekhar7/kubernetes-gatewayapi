@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fincoro-app
+  namespace: argocd
+  labels:
+    app: fincoro-app
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/YOUR_USERNAME/kubernetes-gatewayapi.git' # TODO: Replace with your repository URL
+    targetRevision: HEAD
+    path: fincoro-app
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: banking-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

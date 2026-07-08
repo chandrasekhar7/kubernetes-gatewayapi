@@ -3,14 +3,8 @@ kind: Gateway
 metadata:
   name: hospital-gateway
   namespace: hospital-system
-  annotations:
-    metallb.universe.tf/loadBalancerIPs: "172.18.255.210"
-    metallb.io/loadBalancerIPs: "172.18.255.210"
 spec:
   gatewayClassName: envoy
-  addresses:
-  - type: IPAddress
-    value: 172.18.255.210
   listeners:
   - name: http
     protocol: HTTP
