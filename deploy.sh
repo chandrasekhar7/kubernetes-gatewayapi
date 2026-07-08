@@ -31,16 +31,16 @@ echo "Applying self-signed root ClusterIssuer..."
 kubectl apply -f cert-manager/01-selfsigned-issuer.yaml
 
 echo "Applying CA Certificate..."
-kubectl apply -f cert-manager/02-ca-certificate.yaml
+kubectl apply -f fincoro-app/cert-manager/02-ca-certificate.yaml
 
 echo "Waiting for CA Certificate to be issued..."
 kubectl wait --for=condition=Ready certificate/apex-root-ca -n banking-system --timeout=30s
 
 echo "Applying CA Issuer..."
-kubectl apply -f cert-manager/03-ca-issuer.yaml
+kubectl apply -f fincoro-app/cert-manager/03-ca-issuer.yaml
 
 echo "Applying Application TLS Certificate..."
-kubectl apply -f cert-manager/04-app-certificate.yaml
+kubectl apply -f fincoro-app/cert-manager/04-app-certificate.yaml
 
 echo "Waiting for Application TLS Certificate to be issued..."
 kubectl wait --for=condition=Ready certificate/apex-app-cert -n banking-system --timeout=30s
@@ -59,8 +59,8 @@ kubectl rollout status deployment/core-api-canary -n banking-system --timeout=60
 
 # 5. Configure Gateway API
 echo -e "${YELLOW}Step 5: Configuring NGINX Gateway Fabric and HTTPRoutes...${NC}"
-kubectl apply -f gateway-api/01-gateway.yaml
-kubectl apply -f gateway-api/02-routes.yaml
+kubectl apply -f fincoro-app/gateway-api/01-gateway.yaml
+kubectl apply -f fincoro-app/gateway-api/02-routes.yaml
 
 echo "Waiting for Gateway to be accepted and programmed..."
 kubectl wait --for=condition=Accepted gateway/apex-gateway -n banking-system --timeout=60s

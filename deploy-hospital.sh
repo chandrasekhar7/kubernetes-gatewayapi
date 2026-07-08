@@ -27,16 +27,16 @@ echo "Applying self-signed root ClusterIssuer..."
 kubectl apply -f cert-manager/01-selfsigned-issuer.yaml
 
 echo "Applying Hospital CA Certificate..."
-kubectl apply -f hospital-cert/01-ca-certificate.yaml
+kubectl apply -f hospital-app/hospital-cert/01-ca-certificate.yaml
 
 echo "Waiting for CA Certificate to be issued..."
 kubectl wait --for=condition=Ready certificate/medicenter-root-ca -n hospital-system --timeout=30s
 
 echo "Applying Hospital CA Issuer..."
-kubectl apply -f hospital-cert/02-ca-issuer.yaml
+kubectl apply -f hospital-app/hospital-cert/02-ca-issuer.yaml
 
 echo "Applying Application TLS Certificate..."
-kubectl apply -f hospital-cert/03-app-certificate.yaml
+kubectl apply -f hospital-app/hospital-cert/03-app-certificate.yaml
 
 echo "Waiting for Application TLS Certificate to be issued..."
 kubectl wait --for=condition=Ready certificate/medicenter-app-cert -n hospital-system --timeout=30s
@@ -55,10 +55,10 @@ kubectl rollout status deployment/med-api-canary -n hospital-system --timeout=60
 
 # 4. Configure Gateway API (Envoy Gateway)
 echo -e "${YELLOW}Step 4: Configuring Envoy GatewayClass, Gateway, and HTTPRoutes...${NC}"
-kubectl apply -f hospital-gateway/04-envoy-proxy.yaml
-kubectl apply -f hospital-gateway/01-gateway-class.yaml
-kubectl apply -f hospital-gateway/02-gateway.yaml
-kubectl apply -f hospital-gateway/03-routes.yaml
+kubectl apply -f hospital-app/hospital-gateway/04-envoy-proxy.yaml
+kubectl apply -f hospital-app/hospital-gateway/01-gateway-class.yaml
+kubectl apply -f hospital-app/hospital-gateway/02-gateway.yaml
+kubectl apply -f hospital-app/hospital-gateway/03-routes.yaml
 
 echo "Waiting for Envoy Gateway to be accepted and programmed..."
 kubectl wait --for=condition=Accepted gateway/hospital-gateway -n hospital-system --timeout=90s
