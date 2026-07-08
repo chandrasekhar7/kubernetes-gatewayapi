@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/YOUR_USERNAME/kubernetes-gatewayapi.git' # TODO: Replace with your repository URL
+    repoURL: 'https://github.com/chandrasekhar7/kubernetes-gatewayapi.git' # TODO: Replace with your repository URL
     targetRevision: HEAD
     path: hospital-app
   destination:
